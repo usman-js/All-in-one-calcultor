@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Free online calculators and currency converter for everyday calculations." />
+  <title>CalcNest — Free Online Calculators</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --text: #172033;
+      --muted: #64748b;
+      --line: #e4e9f1;
+      --primary: #3758d7;
+      --primary-dark: #2846ba;
+      --primary-soft: #edf1ff;
+      --green: #138a63;
+      --shadow: 0 12px 36px rgba(24, 39, 75, .07);
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(1160px, calc(100% - 36px)); margin: 0 auto; }
+    .topbar {
+      position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.92);
+      backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
+    }
+    .nav { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 22px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 850; font-size: 1.18rem; letter-spacing: -.04em; }
+    .brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: white; background: var(--primary); font-weight: 900; }
+    .nav-links { display: flex; align-items: center; gap: 22px; color: var(--muted); font-size: .92rem; }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-cta { border: 0; border-radius: 12px; background: var(--primary); color: white; padding: 10px 15px; font-weight: 700; }
+    .hero { padding: 64px 0 34px; }
+    .hero-grid { display: grid; grid-template-columns: 1.25fr .75fr; gap: 28px; align-items: center; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 7px 11px; border: 1px solid #dce4ff; border-radius: 999px; background: var(--primary-soft); color: var(--primary); font-size: .78rem; font-weight: 800; }
+    h1 { font-size: clamp(2.5rem, 5vw, 4.25rem); line-height: 1.04; letter-spacing: -.065em; margin: 18px 0; max-width: 740px; }
+    .hero p { max-width: 620px; color: var(--muted); font-size: 1.05rem; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 25px; }
+    .btn { border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; font-weight: 750; background: white; color: var(--text); }
+    .btn.primary { color: white; background: var(--primary); border-color: var(--primary); }
+    .btn:hover, .nav-cta:hover { transform: translateY(-1px); }
+    .hero-card { background: linear-gradient(145deg, #243caa, #5978ef); color: white; border-radius: 26px; padding: 25px; box-shadow: 0 22px 55px rgba(55,88,215,.23); }
+    .hero-card .small { color: #dce4ff; font-size: .84rem; }
+    .hero-card h2 { margin: 7px 0 22px; font-size: 1.35rem; letter-spacing: -.03em; }
+    .rate-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-top: 1px solid rgba(255,255,255,.2); }
+    .rate-row strong { font-size: 1.05rem; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 34px; }
+    .stat { padding: 16px; border: 1px solid var(--line); background: white; border-radius: 16px; }
+    .stat strong { display: block; font-size: 1.18rem; }
+    .stat span { color: var(--muted); font-size: .82rem; }
+    .ad-slot { margin: 14px auto 34px; min-height: 90px; max-width: 970px; border: 1px dashed #ccd4e1; border-radius: 14px; display: grid; place-items: center; text-align: center; color: #94a3b8; background: rgba(255,255,255,.55); font-size: .78rem; }
+    .section { padding: 26px 0 62px; }
+    .section-head { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+    .section-head h2 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.35rem); letter-spacing: -.05em; }
+    .section-head p { margin: 7px 0 0; color: var(--muted); }
+    .search { width: min(300px, 100%); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; outline: none; background: white; }
+    .search:focus, input:focus, select:focus { border-color: #91a4ff !important; box-shadow: 0 0 0 3px rgba(55,88,215,.1); outline: none; }
+    .category-row { display: flex; gap: 9px; flex-wrap: wrap; margin-bottom: 22px; }
+    .category { border: 1px solid var(--line); background: white; border-radius: 999px; padding: 9px 14px; color: var(--muted); font-weight: 700; font-size: .86rem; }
+    .category.active { background: var(--primary); border-color: var(--primary); color: white; }
+    .tools-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .tool-card { text-align: left; width: 100%; border: 1px solid var(--line); border-radius: 18px; padding: 20px; background: white; transition: .2s ease; box-shadow: 0 2px 8px rgba(24,39,75,.02); }
+    .tool-card:hover { transform: translateY(-3px); border-color: #c5d0ff; box-shadow: var(--shadow); }
+    .tool-icon { width: 44px; height: 44px; display: grid; place-items: center; background: var(--primary-soft); color: var(--primary); border-radius: 13px; font-size: 1.25rem; margin-bottom: 16px; }
+    .tool-card h3 { margin: 0 0 7px; font-size: 1.04rem; }
+    .tool-card p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .tool-card .tag { display: inline-block; margin-top: 15px; font-size: .73rem; color: var(--green); font-weight: 800; }
+    .workspace { padding: 30px 0 66px; }
+    .workspace-panel { display: grid; grid-template-columns: .7fr 1.3fr; gap: 26px; background: white; border: 1px solid var(--line); border-radius: 24px; padding: 28px; box-shadow: var(--shadow); }
+    .workspace-intro { padding: 12px 8px; }
+    .workspace-intro .tool-icon { width: 52px; height: 52px; }
+    .workspace-intro h2 { margin: 14px 0 9px; font-size: 1.8rem; line-height: 1.15; letter-spacing: -.05em; }
+    .workspace-intro p { color: var(--muted); }
+    .privacy-note { color: var(--green); font-size: .82rem; font-weight: 750; margin-top: 22px; }
+    .form-card { background: var(--surface-2); border: 1px solid var(--line); border-radius: 18px; padding: 22px; }
+    .form-title { margin: 0 0 18px; font-size: 1.05rem; }
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .field { display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: .82rem; font-weight: 750; color: #475569; }
+    input, select { width: 100%; min-width: 0; border: 1px solid #dbe2ec; border-radius: 11px; padding: 12px 13px; color: var(--text); background: white; }
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+    .result { display: none; margin-top: 18px; padding: 18px; border-radius: 14px; border: 1px solid #cbd7ff; background: #f0f4ff; }
+    .result.visible { display: block; }
+    .result-label { color: #5c6eac; font-size: .8rem; font-weight: 750; }
+    .result-value { display: block; margin-top: 4px; color: #243caa; font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 850; letter-spacing: -.04em; overflow-wrap: anywhere; }
+    .result-detail { margin-top: 8px; color: #64748b; font-size: .85rem; }
+    .swap-row { display: flex; align-items: end; gap: 10px; }
+    .swap-row .field { flex: 1; }
+    .swap-btn { height: 45px; width: 45px; flex: 0 0 45px; border: 1px solid #dbe2ec; background: white; color: var(--primary); border-radius: 12px; font-size: 1.2rem; }
+    .status { margin-top: 12px; color: var(--muted); font-size: .82rem; min-height: 1.2em; }
+    .faq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    details { border: 1px solid var(--line); background: white; border-radius: 14px; padding: 17px 18px; }
+    summary { cursor: pointer; font-weight: 800; }
+    details p { margin-bottom: 0; color: var(--muted); font-size: .9rem; }
+    footer { padding: 28px 0; background: white; border-top: 1px solid var(--line); color: var(--muted); font-size: .85rem; }
+    .footer-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .hidden { display: none !important; }
+    @media (max-width: 850px) {
+      .hero-grid, .workspace-panel { grid-template-columns: 1fr; }
+      .hero { padding-top: 42px; }
+      .tools-grid { grid-template-columns: repeat(2, 1fr); }
+      .workspace-intro { padding: 0; }
+      .nav-links { gap: 12px; }
+    }
+    @media (max-width: 560px) {
+      .container { width: min(100% - 24px, 1160px); }
+      .nav { min-height: 64px; }
+      .nav-links a:not(.nav-cta) { display: none; }
+      .hero { padding: 34px 0 25px; }
+      .stats { gap: 8px; }
+      .stat { padding: 12px; }
+      .stat strong { font-size: 1rem; }
+      .stat span { font-size: .73rem; }
+      .section-head { align-items: stretch; flex-direction: column; }
+      .search { width: 100%; }
+      .tools-grid, .field-grid, .faq-grid { grid-template-columns: 1fr; }
+      .workspace-panel { padding: 16px; gap: 18px; }
+      .form-card { padding: 16px; }
+      .field.full { grid-column: auto; }
+      .swap-row { align-items: stretch; flex-direction: column; }
+      .swap-btn { align-self: center; transform: rotate(90deg); }
+      .ad-slot { min-height: 65px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <a class="brand" href="#" aria-label="CalcNest home">
+        <span class="brand-mark">C</span><span>CalcNest</span>
+      </a>
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="#tools">All tools</a>
+        <a href="#currency">Currency converter</a>
+        <a href="#faq">FAQs</a>
+        <a class="nav-cta" href="#tools">Explore calculators ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-grid">
+          <div>
+            <span class="eyebrow">✦ Free tools for everyday life</span>
+            <h1>Useful answers.<br><span style="color:var(--primary)">Less calculation.</span></h1>
+            <p>Calculate, convert, and plan in seconds. A clean collection of everyday calculators, including a multi-currency converter with exchange rates fetched online.</p>
+            <div class="hero-actions">
+              <a class="btn primary" href="#tools">Explore all tools</a>
+              <a class="btn" href="#currency">Convert currency →</a>
+            </div>
+            <div class="stats">
+              <div class="stat"><strong>Free</strong><span>No sign-up needed</span></div>
+              <div class="stat"><strong>Instant</strong><span>Browser calculations</span></div>
+              <div class="stat"><strong>Responsive</strong><span>Mobile and desktop</span></div>
+            </div>
+          </div>
+          <aside class="hero-card">
+            <div class="small">CURRENCY SPOTLIGHT</div>
+            <h2>Convert money across currencies</h2>
+            <div class="rate-row"><span>🇺🇸 USD → 🇵🇰 PKR</span><strong id="heroUsdPkr">Loading…</strong></div>
+            <div class="rate-row"><span>🇪🇺 EUR → 🇵🇰 PKR</span><strong id="heroEurPkr">Loading…</strong></div>
+            <div class="rate-row"><span>🇬🇧 GBP → 🇵🇰 PKR</span><strong id="heroGbpPkr">Loading…</strong></div>
+            <div class="small" id="heroRateDate" style="margin-top:13px">Fetching latest available reference rates…</div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <div class="ad-slot" aria-label="Advertisement placeholder">Advertisement space</div>
+    </div>
+
+    <section class="section" id="tools">
+      <div class="container">
+        <div class="section-head">
+          <div><h2>Find the right calculator</h2><p>Simple tools for numbers, dates, health, and money.</p></div>
+          <input id="toolSearch" class="search" type="search" placeholder="Search calculators…" aria-label="Search calculators" />
+        </div>
+        <div class="category-row" aria-label="Filter tools">
+          <button class="category active" data-category="all">All tools</button>
+          <button class="category" data-category="finance">Finance</button>
+          <button class="category" data-category="everyday">Everyday</button>
+          <button class="category" data-category="health">Health</button>
+          <button class="category" data-category="dates">Date & time</button>
+        </div>
+        <div class="tools-grid" id="toolsGrid">
+          <button class="tool-card" data-tool="currency" data-category="finance" data-search="currency converter exchange rate money pkr usd eur gbp">
+            <span class="tool-icon">⇄</span><h3>Currency Converter</h3><p>Convert between PKR, USD, EUR, GBP and many more currencies.</p><span class="tag">LIVE REFERENCE RATES ↗</span>
+          </button>
+          <button class="tool-card" data-tool="percentage" data-category="everyday" data-search="percentage percent increase decrease">
+            <span class="tool-icon">％</span><h3>Percentage Calculator</h3><p>Find percentages, percentage changes, and portions of a value.</p><span class="tag">INSTANT RESULT</span>
+          </button>
+          <button class="tool-card" data-tool="age" data-category="dates" data-search="age date of birth years months days">
+            <span class="tool-icon">🎂</span><h3>Age Calculator</h3><p>Calculate your age in years, months, and days from your birth date.</p><span class="tag">INSTANT RESULT</span>
+          </button>
+          <button class="tool-card" data-tool="bmi" data-category="health" data-search="bmi body mass index height weight health">
+            <span class="tool-icon">⚖</span><h3>BMI Calculator</h3><p>Calculate body mass index using your height and weight.</p><span class="tag">INSTANT RESULT</span>
+          </button>
+          <button class="tool-card" data-tool="dateDiff" data-category="dates" data-search="date difference days between dates duration">
+            <span class="tool-icon">▦</span><h3>Date Difference</h3><p>Count the days between two dates.</p><span class="tag">INSTANT RESULT</span>
+          </button>
+          <button class="tool-card" data-tool="emi" data-category="finance" data-search="loan emi monthly payment interest rate">
+            <span class="tool-icon">▤</span><h3>Loan EMI Calculator</h3><p>Estimate monthly loan payments from amount, interest, and term.</p><span class="tag">ESTIMATE</span>
+          </button>
+        </div>
+        <p id="noTools" class="hidden" style="color:var(--muted);padding:18px 0">No calculators match your search.</p>
+      </div>
+    </section>
+
+    <section class="workspace" id="currency">
+      <div class="container">
+        <div class="workspace-panel">
+          <div class="workspace-intro">
+            <span class="tool-icon">⇄</span>
+            <span class="eyebrow">MULTI-CURRENCY TOOL</span>
+            <h2>Currency converter</h2>
+            <p>Convert amounts between a wide range of currencies. Exchange rates are retrieved from a public reference-rate API when you open the page or change currencies.</p>
+            <div class="privacy-note">✓ Your amount is calculated in this browser</div>
+            <p style="font-size:.82rem">Rates are indicative reference rates, not guaranteed bank, card, or cash-exchange rates. Fees and provider margins may apply.</p>
+          </div>
+          <div class="form-card">
+            <h3 class="form-title">Convert your amount</h3>
+            <div class="field-grid">
+              <div class="field full"><label for="currencyAmount">Amount</label><input id="currencyAmount" type="number" min="0" step="any" value="1" inputmode="decimal" /></div>
+              <div class="field"><label for="fromCurrency">From</label><select id="fromCurrency"></select></div>
+              <div class="field"><label for="toCurrency">To</label><select id="toCurrency"></select></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn primary" id="convertBtn">Convert currency</button>
+              <button class="btn" id="swapCurrency" type="button" aria-label="Swap currencies">⇄ Swap</button>
+            </div>
+            <div class="result visible" id="currencyResult" aria-live="polite">
+              <span class="result-label">Converted amount</span>
+              <strong class="result-value" id="currencyResultValue">Loading rates…</strong>
+              <div class="result-detail" id="currencyResultDetail">Fetching a reference exchange rate.</div>
+            </div>
+            <div class="status" id="currencyStatus" role="status"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="workspace" id="calculatorWorkspace">
+      <div class="container">
+        <div class="workspace-panel">
+          <div class="workspace-intro">
+            <span class="tool-icon" id="activeIcon">％</span>
+            <span class="eyebrow">QUICK CALCULATOR</span>
+            <h2 id="activeTitle">Percentage calculator</h2>
+            <p id="activeDescription">Choose a calculator card above to open its inputs here. Your calculations happen instantly in your browser.</p>
+            <div class="privacy-note">✓ No account required</div>
+          </div>
+          <div class="form-card" id="calcFormContainer">
+            <h3 class="form-title" id="calcFormTitle">What do you want to calculate?</h3>
+            <div id="calcFields" class="field-grid"></div>
+            <div class="form-actions"><button class="btn primary" id="calculateBtn">Calculate</button><button class="btn" id="resetCalcBtn" type="button">Reset</button></div>
+            <div class="result" id="calcResult" aria-live="polite"><span class="result-label">Result</span><strong class="result-value" id="calcResultValue"></strong><div class="result-detail" id="calcResultDetail"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head"><div><h2>Frequently asked questions</h2><p>Quick notes about using these tools.</p></div></div>
+        <div class="faq-grid">
+          <details><summary>Are these calculators free?</summary><p>Yes. This demo page does not require an account or payment to use its calculators.</p></details>
+          <details><summary>Are currency rates exact?</summary><p>No. Rates are reference values returned by an external service and may differ from rates offered by banks, card providers, or money exchangers.</p></details>
+          <details><summary>Does the website save my inputs?</summary><p>This single-file demo does not send calculator inputs to a server. Currency conversion does make a request to retrieve exchange-rate data.</p></details>
+          <details><summary>Can I add more calculators?</summary><p>Yes. You can extend the tool cards and add another calculator definition in the JavaScript section.</p></details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-row">
+      <a class="brand" href="#"><span class="brand-mark">C</span><span>CalcNest</span></a>
+      <span>Free online tools · Built for everyday calculations</span>
+      <span>© <span id="year"></span> CalcNest</span>
+    </div>
+  </footer>
+
+  <script>
+    const currencyNames = {
+      AED: "UAE Dirham", AUD: "Australian Dollar", BDT: "Bangladeshi Taka", BHD: "Bahraini Dinar",
+      BRL: "Brazilian Real", CAD: "Canadian Dollar", CHF: "Swiss Franc", CNY: "Chinese Yuan",
+      DKK: "Danish Krone", EGP: "Egyptian Pound", EUR: "Euro", GBP: "British Pound",
+      HKD: "Hong Kong Dollar", IDR: "Indonesian Rupiah", INR: "Indian Rupee", IQD: "Iraqi Dinar",
+      JPY: "Japanese Yen", JOD: "Jordanian Dinar", KRW: "South Korean Won", KWD: "Kuwaiti Dinar",
+      LKR: "Sri Lankan Rupee", MYR: "Malaysian Ringgit", NPR: "Nepalese Rupee", NZD: "New Zealand Dollar",
+      OMR: "Omani Rial", PHP: "Philippine Peso", PKR: "Pakistani Rupee", QAR: "Qatari Riyal",
+      SAR: "Saudi Riyal", SEK: "Swedish Krona", SGD: "Singapore Dollar", THB: "Thai Baht",
+      TRY: "Turkish Lira", USD: "US Dollar", VND: "Vietnamese Dong", ZAR: "South African Rand",
+      PLN: "Polish Zloty", CZK: "Czech Koruna", HUF: "Hungarian Forint", NOK: "Norwegian Krone",
+      ISK: "Icelandic Krona", MXN: "Mexican Peso", RON: "Romanian Leu", BGN: "Bulgarian Lev",
+      HRK: "Croatian Kuna", RUB: "Russian Ruble", UAH: "Ukrainian Hryvnia", KES: "Kenyan Shilling",
+      GHS: "Ghanaian Cedi", MAD: "Moroccan Dirham", TND: "Tunisian Dinar", ARS: "Argentine Peso",
+      CLP: "Chilean Peso", COP: "Colombian Peso", PEN: "Peruvian Sol", UYU: "Uruguayan Peso"
+    };
+    const $ = (id) => document.getElementById(id);
+    $("year").textContent = new Date().getFullYear();
+
+    const fromSelect = $("fromCurrency");
+    const toSelect = $("toCurrency");
+    const supportedCurrencies = Object.keys(currencyNames).sort();
+    function populateCurrencySelect(select, selected) {
+      select.innerHTML = supportedCurrencies.map(code =>
+        `<option value="${code}" ${code === selected ? "selected" : ""}>${code} — ${currencyNames[code]}</option>`
+      ).join("");
+    }
+    populateCurrencySelect(fromSelect, "USD");
+    populateCurrencySelect(toSelect, "PKR");
+
+    const formatter = (code, amount) => {
+      try {
+        return new Intl.NumberFormat("en", { style: "currency", currency: code, maximumFractionDigits: 4 }).format(amount);
+      } catch {
+        return `${amount.toLocaleString(undefined, { maximumFractionDigits: 4 })} ${code}`;
+      }
+    };
+    let latestRates = null;
+    let rateDate = "";
+    const rateCache = new Map();
+
+    async function getRate(from, to) {
+      if (from === to) return { rate: 1, date: new Date().toISOString().slice(0, 10) };
+      const key = `${from}_${to}`;
+      if (rateCache.has(key)) return rateCache.get(key);
+      const url = `https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Exchange-rate service is currently unavailable.");
+      const data = await response.json();
+      const rate = data && data.rates && Number(data.rates[to]);
+      if (!Number.isFinite(rate) || rate <= 0) throw new Error("No rate was returned for this currency pair.");
+      const result = { rate, date: data.date || "" };
+      rateCache.set(key, result);
+      return result;
+    }
+
+    async function convertCurrency() {
+      const amount = Number($("currencyAmount").value);
+      const from = fromSelect.value;
+      const to = toSelect.value;
+      $("currencyResultValue").textContent = "Loading rate…";
+      $("currencyResultDetail").textContent = "";
+      $("currencyStatus").textContent = "Fetching reference exchange rate…";
+      try {
+        if (!Number.isFinite(amount) || amount < 0) throw new Error("Enter a valid amount greater than or equal to zero.");
+        const result = await getRate(from, to);
+        const converted = amount * result.rate;
+        latestRates = { ...result, from, to };
+        rateDate = result.date;
+        $("currencyResultValue").textContent = formatter(to, converted);
+        $("currencyResultDetail").textContent = `1 ${from} = ${result.rate.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${to}${result.date ? ` · Rate date: ${result.date}` : ""}`;
+        $("currencyStatus").textContent = "Reference rate loaded. Your bank or exchange provider may use a different rate.";
+      } catch (error) {
+        $("currencyResultValue").textContent = "Rate unavailable";
+        $("currencyResultDetail").textContent = "Check your internet connection or try again later.";
+        $("currencyStatus").textContent = error.message || "Could not load the exchange rate.";
+      }
+    }
+    $("convertBtn").addEventListener("click", convertCurrency);
+    $("currencyAmount").addEventListener("input", convertCurrency);
+    fromSelect.addEventListener("change", convertCurrency);
+    toSelect.addEventListener("change", convertCurrency);
+    $("swapCurrency").addEventListener("click", () => {
+      const oldFrom = fromSelect.value;
+      fromSelect.value = toSelect.value;
+      toSelect.value = oldFrom;
+      convertCurrency();
+    });
+
+    async function loadSpotlightRates() {
+      const pairs = [
+        ["USD", "PKR", "heroUsdPkr"],
+        ["EUR", "PKR", "heroEurPkr"],
+        ["GBP", "PKR", "heroGbpPkr"]
+      ];
+      try {
+        const results = await Promise.all(pairs.map(async ([from, to, id]) => {
+          const data = await getRate(from, to);
+          $(id).textContent = `1 ${from} = ${data.rate.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${to}`;
+          return data.date;
+        }));
+        $("heroRateDate").textContent = `Reference rate date: ${results[0] || "not provided"}`;
+      } catch {
+        $("heroUsdPkr").textContent = "Unavailable";
+        $("heroEurPkr").textContent = "Unavailable";
+        $("heroGbpPkr").textContent = "Unavailable";
+        $("heroRateDate").textContent = "Could not load rates. Try the converter again later.";
+      }
+    }
+
+    const toolDefinitions = {
+      percentage: {
+        title: "Percentage calculator", icon: "％", description: "Calculate what percentage one value is of another, or find a percentage of a value.",
+        fields: [
+          { id: "percentValue", label: "Value", type: "number", value: "250" },
+          { id: "percentRate", label: "Percentage (%)", type: "number", value: "15" }
+        ],
+        calculate: v => ({ value: `${(v.percentValue * v.percentRate / 100).toLocaleString(undefined, { maximumFractionDigits: 6 })}`, detail: `${v.percentRate}% of ${v.percentValue} = ${v.percentValue * v.percentRate / 100}` })
+      },
+      age: {
+        title: "Age calculator", icon: "🎂", description: "Enter your date of birth to calculate your age as of today.",
+        fields: [{ id: "birthDate", label: "Date of birth", type: "date", value: "2000-01-01" }],
+        calculate: v => {
+          const birth = new Date(`${v.birthDate}T00:00:00`);
+          const today = new Date(); today.setHours(0,0,0,0);
+          if (!v.birthDate || Number.isNaN(birth.getTime()) || birth > today) throw new Error("Enter a valid date of birth that is not in the future.");
+          let years = today.getFullYear() - birth.getFullYear();
+          let months = today.getMonth() - birth.getMonth();
+          let days = today.getDate() - birth.getDate();
+          if (days < 0) { months--; days += new Date(today.getFullYear(), today.getMonth(), 0).getDate(); }
+          if (months < 0) { years--; months += 12; }
+          const totalDays = Math.floor((today - birth) / 86400000);
+          return { value: `${years} years, ${months} months`, detail: `${days} days · ${totalDays.toLocaleString()} total days` };
+        }
+      },
+      bmi: {
+        title: "BMI calculator", icon: "⚖", description: "Use your height in centimetres and weight in kilograms. BMI is a screening measure, not a diagnosis.",
+        fields: [
+          { id: "heightCm", label: "Height (cm)", type: "number", value: "170" },
+          { id: "weightKg", label: "Weight (kg)", type: "number", value: "70" }
+        ],
+        calculate: v => {
+          if (v.heightCm <= 0 || v.weightKg <= 0) throw new Error("Height and weight must be greater than zero.");
+          const bmi = v.weightKg / Math.pow(v.heightCm / 100, 2);
+          const category = bmi < 18.5 ? "Below standard adult range" : bmi < 25 ? "Standard adult range" : bmi < 30 ? "Above standard adult range" : "High adult BMI range";
+          return { value: `BMI ${bmi.toFixed(1)}`, detail: `${category}. Adult BMI categories are general screening guidance only.` };
+        }
+      },
+      dateDiff: {
+        title: "Date difference calculator", icon: "▦", description: "Find the number of calendar days between two dates.",
+        fields: [
+          { id: "dateStart", label: "Start date", type: "date", value: new Date().toISOString().slice(0,10) },
+          { id: "dateEnd", label: "End date", type: "date", value: new Date(Date.now() + 7*86400000).toISOString().slice(0,10) }
+        ],
+        calculate: v => {
+          if (!v.dateStart || !v.dateEnd) throw new Error("Choose both dates.");
+          const start = new Date(`${v.dateStart}T00:00:00Z`);
+          const end = new Date(`${v.dateEnd}T00:00:00Z`);
+          const days = Math.round((end - start) / 86400000);
+          return { value: `${Math.abs(days).toLocaleString()} days`, detail: days < 0 ? "The end date is earlier than the start date." : `${Math.floor(Math.abs(days)/7)} full weeks and ${Math.abs(days)%7} days.` };
+        }
+      },
+      emi: {
+        title: "Loan EMI calculator", icon: "▤", description: "Estimate a fixed monthly payment for a loan. Actual lender fees and terms may differ.",
+        fields: [
+          { id: "loanAmount", label: "Loan amount", type: "number", value: "1000000" },
+          { id: "annualRate", label: "Annual interest rate (%)", type: "number", value: "12" },
+          { id: "loanYears", label: "Loan term (years)", type: "number", value: "5" }
+        ],
+        calculate: v => {
+          if (v.loanAmount <= 0 || v.annualRate < 0 || v.loanYears <= 0) throw new Error("Enter a positive loan amount and term, and a non-negative rate.");
+          const n = Math.round(v.loanYears * 12);
+          const r = v.annualRate / 1200;
+          const emi = r === 0 ? v.loanAmount / n : v.loanAmount * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1);
+          return { value: emi.toLocaleString(undefined, { maximumFractionDigits: 2 }), detail: `Estimated monthly payment · Total paid ${(emi*n).toLocaleString(undefined, { maximumFractionDigits: 2 })} · Interest ${((emi*n)-v.loanAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })}` };
+        }
+      }
+    };
+
+    let activeCalculator = "percentage";
+    function renderCalculator(key) {
+      if (key === "currency") {
+        $("currency").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      const def = toolDefinitions[key] || toolDefinitions.percentage;
+      activeCalculator = key;
+      $("activeIcon").textContent = def.icon;
+      $("activeTitle").textContent = def.title;
+      $("activeDescription").textContent = def.description;
+      $("calcFormTitle").textContent = def.title;
+      $("calcFields").innerHTML = def.fields.map(field => `
+        <div class="field ${def.fields.length === 1 ? "full" : ""}">
+          <label for="${field.id}">${field.label}</label>
+          <input id="${field.id}" type="${field.type}" value="${field.value}" ${field.type === "number" ? 'step="any"' : ""} />
+        </div>`).join("");
+      $("calcResult").classList.remove("visible");
+      $("calculatorWorkspace").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    function readCalculatorValues(def) {
+      const values = {};
+      def.fields.forEach(field => {
+        const el = $(field.id);
+        values[field.id] = field.type === "number" ? Number(el.value) : el.value;
+      });
+      return values;
+    }
+    function calculateActive() {
+      const def = toolDefinitions[activeCalculator];
+      try {
+        const values = readCalculatorValues(def);
+        if (def.fields.some(field => field.type === "number" && !Number.isFinite(values[field.id]))) {
+          throw new Error("Please enter valid numbers in all fields.");
+        }
+        const result = def.calculate(values);
+        $("calcResultValue").textContent = result.value;
+        $("calcResultDetail").textContent = result.detail || "";
+        $("calcResult").classList.add("visible");
+      } catch (error) {
+        $("calcResultValue").textContent = "Check your inputs";
+        $("calcResultDetail").textContent = error.message || "Could not calculate with those values.";
+        $("calcResult").classList.add("visible");
+      }
+    }
+    $("calculateBtn").addEventListener("click", calculateActive);
+    $("resetCalcBtn").addEventListener("click", () => renderCalculator(activeCalculator));
+
+    document.querySelectorAll(".tool-card").forEach(card => {
+      card.addEventListener("click", () => renderCalculator(card.dataset.tool));
+    });
+    const categoryButtons = document.querySelectorAll(".category");
+    let selectedCategory = "all";
+    function filterTools() {
+      const query = $("toolSearch").value.trim().toLowerCase();
+      let visible = 0;
+      document.querySelectorAll(".tool-card").forEach(card => {
+        const categoryMatch = selectedCategory === "all" || card.dataset.category === selectedCategory;
+        const searchMatch = !query || `${card.dataset.search} ${card.innerText}`.toLowerCase().includes(query);
+        const show = categoryMatch && searchMatch;
+        card.classList.toggle("hidden", !show);
+        if (show) visible++;
+      });
+      $("noTools").classList.toggle("hidden", visible > 0);
+    }
+    categoryButtons.forEach(button => button.addEventListener("click", () => {
+      categoryButtons.forEach(item => item.classList.toggle("active", item === button));
+      selectedCategory = button.dataset.category;
+      filterTools();
+    }));
+    $("toolSearch").addEventListener("input", filterTools);
+
+    renderCalculator("percentage");
+    convertCurrency();
+    loadSpotlightRates();
+  </script>
+</body>
+</html>
