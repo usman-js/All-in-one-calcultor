@@ -230,7 +230,7 @@
             <h2>Currency converter</h2>
             <p>Convert amounts between a wide range of currencies. Exchange rates are retrieved from a public reference-rate API when you open the page or change currencies.</p>
             <div class="privacy-note">✓ Your amount is calculated in this browser</div>
-            <p style="font-size:.82rem">Rates are indicative reference rates, not guaranteed bank, card, or cash-exchange rates. Fees and provider margins may apply.</p>
+            <p style="font-size:.82rem">Rates are indicative reference rates, not guaranteed bank, card, or cash-exchange rates. Fees and provider margins may apply. Rates by <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer">Exchange Rate API</a>.</p>
           </div>
           <div class="form-card">
             <h3 class="form-title">Convert your amount</h3>
@@ -308,7 +308,7 @@
       TRY: "Turkish Lira", USD: "US Dollar", VND: "Vietnamese Dong", ZAR: "South African Rand",
       PLN: "Polish Zloty", CZK: "Czech Koruna", HUF: "Hungarian Forint", NOK: "Norwegian Krone",
       ISK: "Icelandic Krona", MXN: "Mexican Peso", RON: "Romanian Leu", BGN: "Bulgarian Lev",
-      HRK: "Croatian Kuna", RUB: "Russian Ruble", UAH: "Ukrainian Hryvnia", KES: "Kenyan Shilling",
+      RUB: "Russian Ruble", UAH: "Ukrainian Hryvnia", KES: "Kenyan Shilling",
       GHS: "Ghanaian Cedi", MAD: "Moroccan Dirham", TND: "Tunisian Dinar", ARS: "Argentine Peso",
       CLP: "Chilean Peso", COP: "Colombian Peso", PEN: "Peruvian Sol", UYU: "Uruguayan Peso"
     };
@@ -335,21 +335,43 @@
     };
     let latestRates = null;
     let rateDate = "";
-    const rateCache = new Map();
+    let usdRatesPromise = null;
+
+    // One USD-based rates request can be used to calculate any supported pair.
+    // The open endpoint updates daily and includes currencies such as PKR, AED and SAR.
+    async function getUsdRates() {
+      if (!usdRatesPromise) {
+        usdRatesPromise = fetch("https://open.er-api.com/v6/latest/USD")
+          .then(response => {
+            if (!response.ok) throw new Error("Exchange-rate service is currently unavailable.");
+            return response.json();
+          })
+          .then(data => {
+            if (data.result !== "success" || !data.rates) {
+              throw new Error("The exchange-rate service did not return valid rates.");
+            }
+            return {
+              rates: data.rates,
+              date: data.time_last_update_utc ? data.time_last_update_utc.slice(0, 16) + " UTC" : ""
+            };
+          })
+          .catch(error => {
+            usdRatesPromise = null;
+            throw error;
+          });
+      }
+      return usdRatesPromise;
+    }
 
     async function getRate(from, to) {
       if (from === to) return { rate: 1, date: new Date().toISOString().slice(0, 10) };
-      const key = `${from}_${to}`;
-      if (rateCache.has(key)) return rateCache.get(key);
-      const url = `https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
-      const response = await fetch(url);
-      if (!response.ok) throw new Error("Exchange-rate service is currently unavailable.");
-      const data = await response.json();
-      const rate = data && data.rates && Number(data.rates[to]);
-      if (!Number.isFinite(rate) || rate <= 0) throw new Error("No rate was returned for this currency pair.");
-      const result = { rate, date: data.date || "" };
-      rateCache.set(key, result);
-      return result;
+      const data = await getUsdRates();
+      const fromRate = Number(data.rates[from]);
+      const toRate = Number(data.rates[to]);
+      if (!Number.isFinite(fromRate) || fromRate <= 0 || !Number.isFinite(toRate) || toRate <= 0) {
+        throw new Error(`The rate provider does not currently support ${from} or ${to}.`);
+      }
+      return { rate: toRate / fromRate, date: data.date };
     }
 
     async function convertCurrency() {
